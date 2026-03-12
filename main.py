@@ -6,12 +6,10 @@ import os
 
 app = FastAPI()
 
+# Allow frontend (Vercel) to call backend (Render)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "*",
-        "https://college-ai-chatbot-theta.vercel.app"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,16 +21,22 @@ def home():
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+
 @app.get("/chat")
 def chat(q: str):
 
     try:
+
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
 
         payload = {
             "contents": [
                 {
-                    "parts": [{"text": q}]
+                    "parts": [
+                        {
+                            "text": q
+                        }
+                    ]
                 }
             ]
         }
@@ -41,20 +45,16 @@ def chat(q: str):
 
         data = r.json()
 
-        # Gemini sometimes returns different structures
+        # Debug log (shows in Render logs)
+        print(data)
+
         if "candidates" in data and len(data["candidates"]) > 0:
             answer = data["candidates"][0]["content"]["parts"][0]["text"]
-
-        elif "error" in data:
-            answer = "AI service error. Please try again later."
-
-        elif "promptFeedback" in data:
-            answer = "The question was blocked by the AI safety filter."
-
         else:
-            answer = "AI couldn't generate a response. Please try again."
+            answer = "AI did not return a valid answer."
 
         return {"response": answer}
 
     except Exception as e:
-        return {"response": "AI server starting. Please try again in a moment."}
+        print(e)
+        return {"response": "AI server error. Please try again."}
