@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>College AI Chatbot</title>
+
+<style>
+body{
+font-family: Arial;
+background:#f5f5f5;
+padding:40px;
+}
+
+.chat{
+background:white;
+padding:20px;
+border-radius:10px;
+height:400px;
+overflow-y:auto;
+margin-bottom:20px;
+}
+
+input{
+width:400px;
+padding:10px;
+}
+
+button{
+padding:10px 20px;
+}
+
+.bot{
+color:#0b63ff;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>College AI Chatbot</h1>
+
+<div class="chat" id="chat"></div>
+
+<input id="msg" placeholder="Ask something about GITAM..." />
+<button onclick="sendMessage()">Send</button>
+
+<script>
+
+async function sendMessage(){
+
+let input = document.getElementById("msg")
+let message = input.value
+
+if(message === "") return
+
+let chat = document.getElementById("chat")
+
+chat.innerHTML += "<p><b>You:</b> "+message+"</p>"
+chat.innerHTML += "<p class='bot'><b>Bot:</b> Thinking...</p>"
+
+input.value = ""
+
+let response = await fetch("http://127.0.0.1:8000/chat?q="+encodeURIComponent(message))
+
+let data = await response.json()
+
+chat.innerHTML = chat.innerHTML.replace(
+"Thinking...",
+data.response
+)
+
+chat.scrollTop = chat.scrollHeight
+
+}
+
+</script>
+
+</body>
+</html>
