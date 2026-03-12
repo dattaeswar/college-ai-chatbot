@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import requests
+import os
 
 app = FastAPI()
 
@@ -14,31 +15,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# serve the chatbot UI
+# homepage
 @app.get("/")
 def home():
     return FileResponse("index.html")
 
+GEMINI_API_KEY = os.getenv("AIzaSyBcJL3ibc7FFWgKxWokDetJT62PtipRUFE")
 
 @app.get("/chat")
 def chat(q: str):
 
-    try:
-        r = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "phi3:mini",
-                "prompt": q + ". Answer in 2 short lines.",
-                "stream": False
-            },
-            timeout=60
-        )
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
 
-        data = r.json()
+    payload = {
+        "contents": [
+            {
+                "parts": [{"text": q}]
+            }
+        ]
+    }
 
-        return {"response": data["response"]}
+    r = requests.post(url, json=payload)
 
-    except Exception:
-        return {
-            "response": "AI model is not connected on the server yet. This is a demo deployment."
-        }
+    data = r.json()
+
+    answer = data["candidates"][0]["content"]["parts"][0]["text"]
+
+    return {"response": answer}
