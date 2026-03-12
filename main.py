@@ -6,7 +6,6 @@ import os
 
 app = FastAPI()
 
-# allow browser requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,12 +14,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# homepage
 @app.get("/")
 def home():
     return FileResponse("index.html")
 
-GEMINI_API_KEY = os.getenv("AIzaSyBcJL3ibc7FFWgKxWokDetJT62PtipRUFE")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 @app.get("/chat")
 def chat(q: str):
