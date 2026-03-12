@@ -38,13 +38,21 @@ def chat(q: str):
         }
 
         r = requests.post(url, json=payload, timeout=30)
+
         data = r.json()
 
-        # Safe extraction of answer
-        if "candidates" in data:
+        # Gemini sometimes returns different structures
+        if "candidates" in data and len(data["candidates"]) > 0:
             answer = data["candidates"][0]["content"]["parts"][0]["text"]
+
+        elif "error" in data:
+            answer = "AI service error. Please try again later."
+
+        elif "promptFeedback" in data:
+            answer = "The question was blocked by the AI safety filter."
+
         else:
-            answer = "The AI couldn't generate a response. Please try again."
+            answer = "AI couldn't generate a response. Please try again."
 
         return {"response": answer}
 
