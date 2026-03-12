@@ -6,7 +6,6 @@ import os
 
 app = FastAPI()
 
-# CORS configuration (allow frontend domains)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -18,14 +17,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve homepage
 @app.get("/")
 def home():
     return FileResponse("index.html")
 
-# Read Gemini API key from environment variable
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
 
 @app.get("/chat")
 def chat(q: str):
@@ -42,14 +38,15 @@ def chat(q: str):
         }
 
         r = requests.post(url, json=payload, timeout=30)
-
         data = r.json()
 
-        answer = data["candidates"][0]["content"]["parts"][0]["text"]
+        # Safe extraction of answer
+        if "candidates" in data:
+            answer = data["candidates"][0]["content"]["parts"][0]["text"]
+        else:
+            answer = "The AI couldn't generate a response. Please try again."
 
         return {"response": answer}
 
     except Exception as e:
-        return {
-            "response": "Sorry, the AI server is starting. Please try again in a moment."
-        }
+        return {"response": "AI server starting. Please try again in a moment."}
